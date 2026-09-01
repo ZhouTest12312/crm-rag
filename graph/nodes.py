@@ -544,7 +544,7 @@ def agent_node(state):
     if state.get('context'):
         parts.append("以下制度摘录（业务规则问题时优先依据，不要编造）：\n\n"
                      + state["context"])
-    parts.append(f'用户问题:{state['user_message']}')
+    parts.append(f'用户问题:{state["user_message"]}')
     parts.append(
         "【硬规则】问数量/列表/金额/状态等事实，必须调用对应工具查库，"
         "禁止只根据制度摘录回答「查不到/材料没有」。"
