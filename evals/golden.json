@@ -1,0 +1,147 @@
+{
+  "version": 1,
+  "description": "edu-crm-langgraph golden：制度/查单/多轮/RBAC/退班试算。",
+  "base_url": "http://127.0.0.1:8000",
+  "cases": [
+    {
+      "id": "lg01_policy_refund",
+      "tag": "policy",
+      "question": "开课后退班怎么扣费？",
+      "expect": {
+        "answer_contains_any": [
+          "消课",
+          "5%",
+          "服务费",
+          "扣除",
+          "开课后"
+        ]
+      }
+    },
+    {
+      "id": "lg02_order_enr",
+      "tag": "order",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "ENR20250820005 什么状态？",
+      "expect": {
+        "answer_contains_any": [
+          "active",
+          "ACTIVE",
+          "在读",
+          "3500",
+          "4"
+        ]
+      }
+    },
+    {
+      "id": "lg03_multi_turn",
+      "tag": "session",
+      "question": "我叫小明",
+      "follow_up": "我叫什么？",
+      "expect": {
+        "answer_contains_any": [
+          "小明"
+        ]
+      }
+    },
+    {
+      "id": "lg04_rbac_guest_read",
+      "tag": "rbac",
+      "headers": {
+        "X-Role": "guest"
+      },
+      "question": "ENR20250801001 什么状态？",
+      "expect": {
+        "answer_contains_any": [
+          "权限",
+          "无权",
+          "没有"
+        ],
+        "answer_must_not_contain": [
+          "active",
+          "在读",
+          "张小明"
+        ]
+      }
+    },
+    {
+      "id": "lg05_rbac_guest_cancel",
+      "tag": "rbac",
+      "headers": {
+        "X-Role": "guest"
+      },
+      "question": "取消 ENR20250801001",
+      "expect": {
+        "answer_contains_any": [
+          "权限",
+          "无权",
+          "没有"
+        ],
+        "answer_must_not_contain": [
+          "已取消",
+          "已为您取消",
+          "将取消订单"
+        ]
+      }
+    },
+    {
+      "id": "lg06_rbac_tutor_cancel",
+      "tag": "rbac",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "取消 ENR20250801001",
+      "expect": {
+        "answer_contains_any": [
+          "无权",
+          "权限",
+          "没有"
+        ],
+        "answer_must_not_contain": [
+          "已取消",
+          "将取消订单"
+        ]
+      }
+    },
+    {
+      "id": "lg07_admin_cancel_confirm",
+      "tag": "rbac",
+      "headers": {
+        "X-Role": "admin"
+      },
+      "question": "取消 ENR20250801001",
+      "follow_up": "确认",
+      "expect": {
+        "answer_contains_any": [
+          "已取消",
+          "cancelled"
+        ],
+        "answer_must_not_contain": [
+          "将取消订单"
+        ]
+      }
+    },
+    {
+      "id": "lg08_refund_estimate",
+      "tag": "refund",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "ENR20250820005 退班能退多少钱",
+      "expect": {
+        "answer_contains_any": [
+          "3208",
+          "应退",
+          "3500"
+        ],
+        "answer_must_not_contain": [
+          "5600",
+          "4000",
+          "Insufficient",
+          "GraphRecursion"
+        ]
+      }
+    }
+  ]
+}

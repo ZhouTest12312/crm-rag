@@ -1,0 +1,25 @@
+services:
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  # 制度 RAG 向量库（企业常见：Postgres + pgvector）
+  pgvector:
+    image: pgvector/pgvector:pg16
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: edu_crm_vectors
+    volumes:
+      - pgvector_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d edu_crm_vectors"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgvector_data:

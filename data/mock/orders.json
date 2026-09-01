@@ -1,0 +1,9 @@
+{
+  "orders": {
+    "ENR20250801001": {
+      "status": "active",
+      "consumed_lessons": 3,
+      "student_name": "张小明"
+    }
+  }
+}
