@@ -420,6 +420,28 @@ TOOLS_SCHEMA = [
     },
 ]
 _CONFIRM = frozenset({"确认", "是的", "是", "好的", "ok", "yes"})
+# 明显闲聊：跳过 retrieve，避免硬塞制度把模型逼成「我是教务助手」拒答
+_CHITCHAT_RE = re.compile(
+    r"^\s*("
+    r"你好|您好|嗨|哈喽|hello|hi|hey|在吗|在不在|"
+    r"早上好|中午好|下午好|晚上好|晚安|"
+    r"谢谢|感谢|多谢|拜拜|再见|"
+    r"今天天气怎么样|天气怎么样|你是谁|你叫什么|你能做什么|你会什么"
+    r")[\s。！？.!？]*$",
+    re.I,
+)
+_BUSINESS_HINT = (
+    "退班", "退款", "换班", "转班", "结转", "订单", "学员", "老师", "班级",
+    "工单", "优惠券", "现金券", "制度", "消课", "排课", "买班", "报名",
+    "ENR", "WO", "RF",
+)
+AGENT_SYSTEM = (
+    "你是教培 CRM 教务助手，帮顾问处理制度、订单、学员、工单等教务问题。"
+    "闲聊（问候、感谢、天气等）请简短自然回应，可顺带一句「有教务问题随时问」；"
+    "不要只回「我是教务助手」或机械自报身份。"
+    "业务事实（数量、金额、状态、单号）必须调用工具查库，禁止编造；"
+    "制度/规则优先依据摘录，摘录不足就说明依据不足，不要编造条款。"
+)
 
 
 def _is_confirm(answer) -> bool:
@@ -437,6 +459,17 @@ def _extract_refund_no(text: str) -> str | None:
     return m.group(0).upper() if m else None
 
 
+def _is_chitchat(q: str) -> bool:
+    s = (q or "").strip()
+    if not s or len(s) > 40:
+        return False
+    if extract_order_no(s) or _WO_PATTERN.search(s) or _RF_PATTERN.search(s):
+        return False
+    if any(k.lower() in s.lower() for k in _BUSINESS_HINT):
+        return False
+    return bool(_CHITCHAT_RE.match(s))
+
+
 def route_entry(state) -> str:
     q = state.get("user_message") or ""
     enr = extract_order_no(q)
@@ -450,6 +483,8 @@ def route_entry(state) -> str:
         return "write_confirm"
     if enr and any(k in q for k in ("确认退班", "落地退款", "执行退班", "退班落地")):
         return "write_confirm"
+    if _is_chitchat(q):
+        return "agent"
     return "retrieve"
 
 
@@ -545,6 +580,10 @@ def agent_node(state):
         parts.append("以下制度摘录（业务规则问题时优先依据，不要编造）：\n\n"
                      + state["context"])
     parts.append(f'用户问题:{state["user_message"]}')
+    if _is_chitchat(state.get("user_message") or ""):
+        parts.append(
+            "【本轮是闲聊】请自然简短回应，不要调工具，不要只自报身份。"
+        )
     parts.append(
         "【硬规则】问数量/列表/金额/状态等事实，必须调用对应工具查库，"
         "禁止只根据制度摘录回答「查不到/材料没有」。"
@@ -578,6 +617,8 @@ def agent_node(state):
         "审批工单 → set_work_order_status；退款打款 → mark_refund_paid；"
         "退班落地 → apply_enrollment_refund；"
         "报名详情 → lookup_order。禁止编造单号与数量。"
+        "统计/分布类回答：先一句总数，再换行列出「- 中文名（code）：数量」，"
+        "便于前端渲染表格；不要全挤在一行用顿号串。"
     )
     # tool 执行完后续问模型：带上「只答当前问题」提醒，避免粘上轮科目
     if _last_is_tool(history):
@@ -598,8 +639,15 @@ def agent_node(state):
                 'content': '\n\n'.join(parts)
             }
         ]
-    tools = TOOLS_SCHEMA if has_perm(user, PERM_ORDER_READ) else None
-    rsp = chat_message(messages, tools=tools)
+    # 闲聊不挂工具，避免模型硬调；业务题按权限挂 schema
+    chitchat = _is_chitchat(state.get("user_message") or "")
+    tools = None if chitchat else (
+        TOOLS_SCHEMA if has_perm(user, PERM_ORDER_READ) else None
+    )
+    rsp = chat_message(
+        [{"role": "system", "content": AGENT_SYSTEM}] + messages,
+        tools=tools,
+    )
     assistant = {
         'role': 'assistant',
         'content': rsp.content or ''

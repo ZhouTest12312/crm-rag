@@ -30,6 +30,7 @@ def build_graph():
         "cancel_confirm": "cancel_confirm",
         "write_confirm": "write_confirm",
         "retrieve": "retrieve",
+        "agent": "agent",  # 闲聊直达，跳过 retrieve
     })
     g.add_edge("retrieve", "agent")
     g.add_conditional_edges("agent", should_continue, {

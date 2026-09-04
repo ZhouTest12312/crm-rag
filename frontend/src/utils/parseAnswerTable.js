@@ -17,7 +17,20 @@ export function parseAnswerBlocks(raw) {
   if (json) return { blocks: [{ type: 'table', ...json }] }
 
   const kv = tryKeyValueList(text)
-  if (kv) return { blocks: [{ type: 'table', ...kv }] }
+  if (kv) {
+    const blocks = []
+    if (kv.intro) blocks.push({ type: 'text', text: kv.intro })
+    blocks.push({ type: 'table', headers: kv.headers, rows: kv.rows })
+    return { blocks }
+  }
+
+  const inline = tryInlineStatusDistribution(text)
+  if (inline) {
+    const blocks = []
+    if (inline.intro) blocks.push({ type: 'text', text: inline.intro })
+    blocks.push({ type: 'table', headers: inline.headers, rows: inline.rows })
+    return { blocks }
+  }
 
   return { blocks: [{ type: 'text', text }] }
 }
@@ -126,20 +139,51 @@ function tryJsonArray(text) {
   return null
 }
 
-/** 至少 2 行「- 键：值」或「1. 键：值」→ 两列表格 */
+/** 至少 2 行「- 键：值」或「1. 键：值」→ 正文（可选）+ 两列表格 */
 function tryKeyValueList(text) {
   const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean)
   const pairs = []
+  const introLines = []
+  let seenBullet = false
+
   for (const line of lines) {
     const m = line.match(/^(?:[-*•]|\d+[.)])\s*(.+?)[:：]\s*(.+)$/)
-    if (!m) {
-      if (pairs.length >= 2) break
-      return null
+    if (m) {
+      seenBullet = true
+      pairs.push([m[1].trim(), m[2].trim()])
+    } else if (!seenBullet) {
+      introLines.push(line)
+    } else if (pairs.length >= 2) {
+      break
     }
-    pairs.push([m[1].trim(), m[2].trim()])
   }
   if (pairs.length < 2) return null
-  return { headers: ['项', '内容'], rows: pairs }
+  return {
+    intro: introLines.join('\n\n').trim(),
+    headers: ['项', '内容'],
+    rows: pairs,
+  }
+}
+
+/** 「各状态分布为：进行中 (active) 5 个、待开课 …」单行散文 → 正文 + 表格 */
+function tryInlineStatusDistribution(text) {
+  const m = text.match(
+    /([\s\S]*?)(?:各状态分布为|按状态分布为|状态分布(?:如下)?)[：:]\s*([\s\S]+)$/
+  )
+  if (!m) return null
+
+  const intro = m[1].trim()
+  const segment = m[2].replace(/[。.!！?？]\s*$/, '').trim()
+  const parts = segment.split(/、/).map((p) => p.trim()).filter(Boolean)
+  if (parts.length < 2) return null
+
+  const rows = []
+  for (const part of parts) {
+    const pm = part.match(/^(.+?)\s*[（(]([^）)]+)[）)]\s*(\d+)\s*个?$/)
+    if (!pm) return null
+    rows.push([pm[1].trim(), pm[2].trim(), pm[3]])
+  }
+  return { intro, headers: ['状态', '代码', '数量'], rows }
 }
 
 function stringifyCell(v) {
