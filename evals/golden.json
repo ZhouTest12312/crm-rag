@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "description": "edu-crm-langgraph golden：制度/查单/多轮/RBAC/退班试算。",
+  "description": "edu-crm-langgraph golden 100 条：制度/查单/多轮/RBAC/退班试算/统计/工单财务。",
   "base_url": "http://127.0.0.1:8000",
   "cases": [
     {
@@ -140,6 +140,1391 @@
           "4000",
           "Insufficient",
           "GraphRecursion"
+        ]
+      }
+    },
+    {
+      "id": "lg09_policy_refund_before",
+      "tag": "policy",
+      "question": "开课前退班能退多少？",
+      "expect": {
+        "answer_contains_any": [
+          "全额",
+          "开课前",
+          "退款",
+          "工作日"
+        ]
+      }
+    },
+    {
+      "id": "lg10_policy_change_free",
+      "tag": "policy",
+      "question": "免费换班要满足什么条件？",
+      "expect": {
+        "answer_contains_any": [
+          "开课前",
+          "3 天",
+          "余座",
+          "1 次",
+          "免费",
+          "三天"
+        ]
+      }
+    },
+    {
+      "id": "lg11_policy_change_fee",
+      "tag": "policy",
+      "question": "付费换班收多少手续费？",
+      "expect": {
+        "answer_contains_any": [
+          "50",
+          "手续费",
+          "差价",
+          "多退少补"
+        ]
+      }
+    },
+    {
+      "id": "lg12_policy_change_forbid",
+      "tag": "policy",
+      "question": "什么情况不能换班？",
+      "expect": {
+        "answer_contains_any": [
+          "满",
+          "进度",
+          "4 节",
+          "退班",
+          "结转"
+        ]
+      }
+    },
+    {
+      "id": "lg13_policy_transfer_def",
+      "tag": "policy",
+      "question": "转班和换班有什么区别？",
+      "expect": {
+        "answer_contains_any": [
+          "转班",
+          "科目",
+          "产品线",
+          "新建",
+          "关闭"
+        ]
+      }
+    },
+    {
+      "id": "lg14_policy_transfer_limit",
+      "tag": "policy",
+      "question": "原班进度超过多少不能转班？",
+      "expect": {
+        "answer_contains_any": [
+          "70%",
+          "70",
+          "结转换班",
+          "不可转"
+        ]
+      }
+    },
+    {
+      "id": "lg15_policy_settle_transfer",
+      "tag": "policy",
+      "question": "结转换班的课时怎么折算？",
+      "expect": {
+        "answer_contains_any": [
+          "1 课时",
+          "1课时",
+          "补差价",
+          "结转",
+          "手续费"
+        ]
+      }
+    },
+    {
+      "id": "lg16_policy_settle_deadline",
+      "tag": "policy",
+      "question": "结转换班要在多久内完成选择？",
+      "expect": {
+        "answer_contains_any": [
+          "30",
+          "结课通知",
+          "逾期",
+          "退班"
+        ]
+      }
+    },
+    {
+      "id": "lg17_policy_settle_refund",
+      "tag": "policy",
+      "question": "结转退班怎么算钱？",
+      "expect": {
+        "answer_contains_any": [
+          "90%",
+          "剩余",
+          "购课单价",
+          "结转退班"
+        ]
+      }
+    },
+    {
+      "id": "lg18_policy_coupon_settle",
+      "tag": "policy",
+      "question": "用了优惠券结转退班退不退券？",
+      "expect": {
+        "answer_contains_any": [
+          "不退",
+          "券",
+          "现金",
+          "结转退班"
+        ]
+      }
+    },
+    {
+      "id": "lg19_policy_approve_sla",
+      "tag": "policy",
+      "question": "换班退班转班审批要多久？",
+      "expect": {
+        "answer_contains_any": [
+          "1 个工作日",
+          "1个工作日",
+          "工作日",
+          "教务",
+          "审核"
+        ]
+      }
+    },
+    {
+      "id": "lg20_policy_settle_approve",
+      "tag": "policy",
+      "question": "结转换班结转退班审核多久？",
+      "expect": {
+        "answer_contains_any": [
+          "3 个工作日",
+          "3个工作日",
+          "财务",
+          "教务",
+          "联合"
+        ]
+      }
+    },
+    {
+      "id": "lg21_policy_early_bird",
+      "tag": "policy",
+      "question": "早鸟价怎么算？",
+      "expect": {
+        "answer_contains_any": [
+          "早鸟",
+          "95",
+          "14",
+          "转介绍",
+          "叠加"
+        ]
+      }
+    },
+    {
+      "id": "lg22_policy_buy_unpaid",
+      "tag": "policy",
+      "question": "买班未支付订单多久取消？",
+      "expect": {
+        "answer_contains_any": [
+          "24",
+          "小时",
+          "取消",
+          "未支付"
+        ]
+      }
+    },
+    {
+      "id": "lg23_policy_buy_limit",
+      "tag": "policy",
+      "question": "同一学员同一科目最多几个在读班？",
+      "expect": {
+        "answer_contains_any": [
+          "2",
+          "科目",
+          "在读",
+          "结课"
+        ]
+      }
+    },
+    {
+      "id": "lg24_policy_buy_installment",
+      "tag": "policy",
+      "question": "买班分期有什么规则？",
+      "expect": {
+        "answer_contains_any": [
+          "3 期",
+          "3期",
+          "免息",
+          "首期",
+          "当日"
+        ]
+      }
+    },
+    {
+      "id": "lg25_policy_signin",
+      "tag": "policy",
+      "question": "老师上课前多久要签到？",
+      "expect": {
+        "answer_contains_any": [
+          "15",
+          "签到",
+          "分钟"
+        ]
+      }
+    },
+    {
+      "id": "lg26_policy_checkout",
+      "tag": "policy",
+      "question": "下课要在多久内点下课？",
+      "expect": {
+        "answer_contains_any": [
+          "30",
+          "下课",
+          "实到"
+        ]
+      }
+    },
+    {
+      "id": "lg27_policy_force_majeure",
+      "tag": "policy",
+      "question": "台风停课怎么处理？",
+      "expect": {
+        "answer_contains_any": [
+          "顺延",
+          "不消课",
+          "不可抗力",
+          "不额外"
+        ]
+      }
+    },
+    {
+      "id": "lg28_policy_leave",
+      "tag": "policy",
+      "question": "学员个人请假补不补课？",
+      "expect": {
+        "answer_contains_any": [
+          "不补课",
+          "不退费",
+          "回放",
+          "请假"
+        ]
+      }
+    },
+    {
+      "id": "lg29_policy_absent",
+      "tag": "policy",
+      "question": "连续几次缺勤要电话回访？",
+      "expect": {
+        "answer_contains_any": [
+          "3",
+          "缺勤",
+          "回访",
+          "班主任"
+        ]
+      }
+    },
+    {
+      "id": "lg30_policy_lesson_len",
+      "tag": "policy",
+      "question": "线下一次课多久？",
+      "expect": {
+        "answer_contains_any": [
+          "90",
+          "分钟",
+          "线下"
+        ]
+      }
+    },
+    {
+      "id": "lg31_policy_online_len",
+      "tag": "policy",
+      "question": "线上一次课多久？",
+      "expect": {
+        "answer_contains_any": [
+          "60",
+          "分钟",
+          "线上"
+        ]
+      }
+    },
+    {
+      "id": "lg32_policy_refund_apply",
+      "tag": "policy",
+      "question": "退班申请要怎么走流程？",
+      "expect": {
+        "answer_contains_any": [
+          "顾问",
+          "短信",
+          "审批",
+          "主管",
+          "CRM"
+        ]
+      }
+    },
+    {
+      "id": "lg33_policy_refund_forbid",
+      "tag": "policy",
+      "question": "什么情况不可退班？",
+      "expect": {
+        "answer_contains_any": [
+          "结课",
+          "结转",
+          "分期",
+          "不可退"
+        ]
+      }
+    },
+    {
+      "id": "lg34_policy_buy_wrong_class",
+      "tag": "policy",
+      "question": "买班填错班级怎么办？",
+      "expect": {
+        "answer_contains_any": [
+          "换班",
+          "开课前",
+          "3 天",
+          "三天",
+          "免费"
+        ]
+      }
+    },
+    {
+      "id": "lg35_policy_wo_types",
+      "tag": "policy",
+      "question": "教务工单有哪些类型？",
+      "expect": {
+        "answer_contains_any": [
+          "换班",
+          "转班",
+          "退班",
+          "结转"
+        ]
+      }
+    },
+    {
+      "id": "lg36_order_005_paid",
+      "tag": "order",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "ENR20250820005 什么状态？实付多少？",
+      "expect": {
+        "answer_contains_any": [
+          "3500",
+          "active",
+          "在读",
+          "4",
+          "学员05"
+        ]
+      }
+    },
+    {
+      "id": "lg37_order_009_status",
+      "tag": "order",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "ENR20250820009 什么状态？实付多少？",
+      "expect": {
+        "answer_contains_any": [
+          "3900",
+          "active",
+          "在读",
+          "学员09"
+        ]
+      }
+    },
+    {
+      "id": "lg38_order_006_pending",
+      "tag": "order",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "ENR20250820006 什么状态？实付多少？",
+      "expect": {
+        "answer_contains_any": [
+          "3600",
+          "pending_start",
+          "待开班",
+          "待开"
+        ]
+      }
+    },
+    {
+      "id": "lg39_order_008_refunded",
+      "tag": "order",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "ENR20250820008 什么状态？实付多少？",
+      "expect": {
+        "answer_contains_any": [
+          "3800",
+          "refunded",
+          "已退",
+          "退费"
+        ]
+      }
+    },
+    {
+      "id": "lg40_order_003_completed",
+      "tag": "order",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "ENR20250820003 什么状态？实付多少？",
+      "expect": {
+        "answer_contains_any": [
+          "3300",
+          "completed",
+          "结课",
+          "已结"
+        ]
+      }
+    },
+    {
+      "id": "lg41_order_010_pending",
+      "tag": "order",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "ENR20250820010 什么状态？实付多少？",
+      "expect": {
+        "answer_contains_any": [
+          "4000",
+          "pending_start",
+          "待开班",
+          "待开"
+        ]
+      }
+    },
+    {
+      "id": "lg42_order_013_active",
+      "tag": "order",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "ENR20250820013 什么状态？实付多少？",
+      "expect": {
+        "answer_contains_any": [
+          "4300",
+          "active",
+          "在读",
+          "4"
+        ]
+      }
+    },
+    {
+      "id": "lg43_order_017_active",
+      "tag": "order",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "ENR20250820017 什么状态？实付多少？",
+      "expect": {
+        "answer_contains_any": [
+          "4700",
+          "active",
+          "在读",
+          "学员17"
+        ]
+      }
+    },
+    {
+      "id": "lg44_order_015_completed",
+      "tag": "order",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "ENR20250820015 什么状态？实付多少？",
+      "expect": {
+        "answer_contains_any": [
+          "4500",
+          "completed",
+          "结课",
+          "已结"
+        ]
+      }
+    },
+    {
+      "id": "lg45_order_020_refunded",
+      "tag": "order",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "ENR20250820020 什么状态？实付多少？",
+      "expect": {
+        "answer_contains_any": [
+          "5000",
+          "refunded",
+          "已退",
+          "退费"
+        ]
+      }
+    },
+    {
+      "id": "lg46_order_001_cancelled",
+      "tag": "order",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "ENR20250801001 什么状态？实付多少？",
+      "expect": {
+        "answer_contains_any": [
+          "cancelled",
+          "已取消",
+          "取消",
+          "2990",
+          "张小明"
+        ]
+      }
+    },
+    {
+      "id": "lg47_order_002_cancelled",
+      "tag": "order",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "ENR20250815002 什么状态？实付多少？",
+      "expect": {
+        "answer_contains_any": [
+          "cancelled",
+          "已取消",
+          "取消",
+          "3590",
+          "李小红"
+        ]
+      }
+    },
+    {
+      "id": "lg48_order_004_cancelled",
+      "tag": "order",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "ENR20250820004 什么状态？实付多少？",
+      "expect": {
+        "answer_contains_any": [
+          "cancelled",
+          "已取消",
+          "取消",
+          "3400"
+        ]
+      }
+    },
+    {
+      "id": "lg49_order_007_completed",
+      "tag": "order",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "ENR20250820007 什么状态？实付多少？",
+      "expect": {
+        "answer_contains_any": [
+          "3700",
+          "completed",
+          "结课",
+          "已结"
+        ]
+      }
+    },
+    {
+      "id": "lg50_order_011_completed",
+      "tag": "order",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "ENR20250820011 什么状态？实付多少？",
+      "expect": {
+        "answer_contains_any": [
+          "4100",
+          "completed",
+          "结课",
+          "已结"
+        ]
+      }
+    },
+    {
+      "id": "lg51_order_012_refunded",
+      "tag": "order",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "ENR20250820012 什么状态？实付多少？",
+      "expect": {
+        "answer_contains_any": [
+          "4200",
+          "refunded",
+          "已退",
+          "退费"
+        ]
+      }
+    },
+    {
+      "id": "lg52_order_014_pending",
+      "tag": "order",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "ENR20250820014 什么状态？实付多少？",
+      "expect": {
+        "answer_contains_any": [
+          "4400",
+          "pending_start",
+          "待开班",
+          "待开"
+        ]
+      }
+    },
+    {
+      "id": "lg53_order_016_refunded",
+      "tag": "order",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "ENR20250820016 什么状态？实付多少？",
+      "expect": {
+        "answer_contains_any": [
+          "4600",
+          "refunded",
+          "已退",
+          "退费"
+        ]
+      }
+    },
+    {
+      "id": "lg54_order_018_pending",
+      "tag": "order",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "ENR20250820018 什么状态？实付多少？",
+      "expect": {
+        "answer_contains_any": [
+          "4800",
+          "pending_start",
+          "待开班",
+          "待开"
+        ]
+      }
+    },
+    {
+      "id": "lg55_order_019_completed",
+      "tag": "order",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "ENR20250820019 什么状态？实付多少？",
+      "expect": {
+        "answer_contains_any": [
+          "4900",
+          "completed",
+          "结课",
+          "已结"
+        ]
+      }
+    },
+    {
+      "id": "lg56_session_name_li",
+      "tag": "session",
+      "question": "我叫李华",
+      "follow_up": "我叫什么名字？",
+      "expect": {
+        "answer_contains_any": [
+          "李华"
+        ]
+      }
+    },
+    {
+      "id": "lg57_session_city",
+      "tag": "session",
+      "question": "我在上海工作",
+      "follow_up": "我在哪个城市？",
+      "expect": {
+        "answer_contains_any": [
+          "上海"
+        ]
+      }
+    },
+    {
+      "id": "lg58_session_order_ref",
+      "tag": "session",
+      "question": "记住单号尾号 20005",
+      "follow_up": "刚才说的单号尾号是多少？",
+      "expect": {
+        "answer_contains_any": [
+          "20005"
+        ]
+      }
+    },
+    {
+      "id": "lg59_session_pref",
+      "tag": "session",
+      "question": "我喜欢数学班",
+      "follow_up": "我喜欢什么科目？",
+      "expect": {
+        "answer_contains_any": [
+          "数学"
+        ]
+      }
+    },
+    {
+      "id": "lg60_session_roleplay",
+      "tag": "session",
+      "question": "请叫我顾问小王",
+      "follow_up": "你应该怎么称呼我？",
+      "expect": {
+        "answer_contains_any": [
+          "小王",
+          "顾问"
+        ]
+      }
+    },
+    {
+      "id": "lg61_session_number",
+      "tag": "session",
+      "question": "验证码是 8821",
+      "follow_up": "验证码是多少？",
+      "expect": {
+        "answer_contains_any": [
+          "8821"
+        ]
+      }
+    },
+    {
+      "id": "lg62_session_course",
+      "tag": "session",
+      "question": "孩子报的是初二数学",
+      "follow_up": "孩子报的什么课？",
+      "expect": {
+        "answer_contains_any": [
+          "数学",
+          "初二"
+        ]
+      }
+    },
+    {
+      "id": "lg63_session_phone_tail",
+      "tag": "session",
+      "question": "家长手机尾号 0005",
+      "follow_up": "家长手机尾号是多少？",
+      "expect": {
+        "answer_contains_any": [
+          "0005"
+        ]
+      }
+    },
+    {
+      "id": "lg64_rbac_lecturer_read",
+      "tag": "rbac",
+      "headers": {
+        "X-Role": "lecturer"
+      },
+      "question": "ENR20250820005 什么状态？",
+      "expect": {
+        "answer_contains_any": [
+          "权限",
+          "无权",
+          "没有"
+        ],
+        "answer_must_not_contain": [
+          "active",
+          "在读",
+          "3500"
+        ]
+      }
+    },
+    {
+      "id": "lg65_rbac_lecturer_cancel",
+      "tag": "rbac",
+      "headers": {
+        "X-Role": "lecturer"
+      },
+      "question": "取消 ENR20250820005",
+      "expect": {
+        "answer_contains_any": [
+          "权限",
+          "无权",
+          "没有"
+        ],
+        "answer_must_not_contain": [
+          "已取消",
+          "将取消订单",
+          "已为您取消"
+        ]
+      }
+    },
+    {
+      "id": "lg66_rbac_guest_refund",
+      "tag": "rbac",
+      "headers": {
+        "X-Role": "guest"
+      },
+      "question": "ENR20250820005 退班能退多少钱",
+      "expect": {
+        "answer_contains_any": [
+          "权限",
+          "无权",
+          "没有"
+        ],
+        "answer_must_not_contain": [
+          "3208",
+          "应退金额"
+        ]
+      }
+    },
+    {
+      "id": "lg67_rbac_lecturer_refund",
+      "tag": "rbac",
+      "headers": {
+        "X-Role": "lecturer"
+      },
+      "question": "ENR20250820009 退班能退多少",
+      "expect": {
+        "answer_contains_any": [
+          "权限",
+          "无权",
+          "没有"
+        ],
+        "answer_must_not_contain": [
+          "应退金额"
+        ]
+      }
+    },
+    {
+      "id": "lg68_rbac_guest_list",
+      "tag": "rbac",
+      "headers": {
+        "X-Role": "guest"
+      },
+      "question": "有多少报名订单？",
+      "expect": {
+        "answer_contains_any": [
+          "权限",
+          "无权",
+          "没有"
+        ]
+      }
+    },
+    {
+      "id": "lg69_rbac_lecturer_teachers",
+      "tag": "rbac",
+      "headers": {
+        "X-Role": "lecturer"
+      },
+      "question": "各老师名下有多少报名订单？",
+      "expect": {
+        "answer_contains_any": [
+          "权限",
+          "无权",
+          "没有"
+        ]
+      }
+    },
+    {
+      "id": "lg70_rbac_guest_wo",
+      "tag": "rbac",
+      "headers": {
+        "X-Role": "guest"
+      },
+      "question": "查一下工单 WO20260901001 关联的订单",
+      "expect": {
+        "answer_contains_any": [
+          "权限",
+          "无权",
+          "没有"
+        ],
+        "answer_must_not_contain": [
+          "approved",
+          "已通过"
+        ]
+      }
+    },
+    {
+      "id": "lg71_rbac_tutor_mark_paid",
+      "tag": "rbac",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "把退款单 RF20250901001 标记已打款",
+      "expect": {
+        "answer_contains_any": [
+          "权限",
+          "无权",
+          "没有"
+        ],
+        "answer_must_not_contain": [
+          "将把退款单"
+        ]
+      }
+    },
+    {
+      "id": "lg72_rbac_tutor_wo_approve",
+      "tag": "rbac",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "把工单 WO20260901003 审批通过",
+      "expect": {
+        "answer_contains_any": [
+          "权限",
+          "无权",
+          "没有"
+        ],
+        "answer_must_not_contain": [
+          "将把工单"
+        ]
+      }
+    },
+    {
+      "id": "lg73_rbac_guest_student",
+      "tag": "rbac",
+      "headers": {
+        "X-Role": "guest"
+      },
+      "question": "张小明有哪些订单？",
+      "expect": {
+        "answer_contains_any": [
+          "权限",
+          "无权",
+          "没有"
+        ],
+        "answer_must_not_contain": [
+          "ENR20250801001"
+        ]
+      }
+    },
+    {
+      "id": "lg74_rbac_lecturer_coupon",
+      "tag": "rbac",
+      "headers": {
+        "X-Role": "lecturer"
+      },
+      "question": "查优惠券 CPN20250901001 绑定的订单",
+      "expect": {
+        "answer_contains_any": [
+          "权限",
+          "无权",
+          "没有"
+        ],
+        "answer_must_not_contain": [
+          "unused"
+        ]
+      }
+    },
+    {
+      "id": "lg75_rbac_guest_cancel_005",
+      "tag": "rbac",
+      "headers": {
+        "X-Role": "guest"
+      },
+      "question": "取消订单 ENR20250820005",
+      "expect": {
+        "answer_contains_any": [
+          "权限",
+          "无权",
+          "没有"
+        ],
+        "answer_must_not_contain": [
+          "已取消",
+          "将取消订单",
+          "已为您取消"
+        ]
+      }
+    },
+    {
+      "id": "lg76_rbac_tutor_apply_refund",
+      "tag": "rbac",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "对 ENR20250820009 执行退班落地",
+      "expect": {
+        "answer_contains_any": [
+          "权限",
+          "无权",
+          "没有"
+        ],
+        "answer_must_not_contain": [
+          "将把订单"
+        ]
+      }
+    },
+    {
+      "id": "lg77_rbac_guest_overview",
+      "tag": "rbac",
+      "headers": {
+        "X-Role": "guest"
+      },
+      "question": "有多少班级对应的报名订单？",
+      "expect": {
+        "answer_contains_any": [
+          "权限",
+          "无权",
+          "没有"
+        ]
+      }
+    },
+    {
+      "id": "lg78_rbac_lecturer_source",
+      "tag": "rbac",
+      "headers": {
+        "X-Role": "lecturer"
+      },
+      "question": "订单来源分布是怎样的？",
+      "expect": {
+        "answer_contains_any": [
+          "权限",
+          "无权",
+          "没有"
+        ],
+        "answer_must_not_contain": [
+          "抖音",
+          "线下"
+        ]
+      }
+    },
+    {
+      "id": "lg79_refund_009_full",
+      "tag": "refund",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "ENR20250820009 退班能退多少钱",
+      "expect": {
+        "answer_contains_any": [
+          "3900",
+          "应退",
+          "全额"
+        ]
+      }
+    },
+    {
+      "id": "lg80_refund_017_full",
+      "tag": "refund",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "ENR20250820017 退班试算一下",
+      "expect": {
+        "answer_contains_any": [
+          "4700",
+          "应退",
+          "全额"
+        ]
+      }
+    },
+    {
+      "id": "lg81_refund_006",
+      "tag": "refund",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "ENR20250820006 退班能退多少",
+      "expect": {
+        "answer_contains_any": [
+          "3180",
+          "3600",
+          "应退"
+        ]
+      }
+    },
+    {
+      "id": "lg82_refund_013",
+      "tag": "refund",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "ENR20250820013 退班能退多少钱",
+      "expect": {
+        "answer_contains_any": [
+          "3941",
+          "4300",
+          "应退"
+        ]
+      }
+    },
+    {
+      "id": "lg83_refund_cancelled_001",
+      "tag": "refund",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "ENR20250801001 退班能退多少",
+      "expect": {
+        "answer_contains_any": [
+          "取消",
+          "无法",
+          "不能",
+          "已取消"
+        ]
+      }
+    },
+    {
+      "id": "lg84_refund_010",
+      "tag": "refund",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "ENR20250820010 退班试算",
+      "expect": {
+        "answer_contains_any": [
+          "4000",
+          "应退",
+          "133"
+        ]
+      }
+    },
+    {
+      "id": "lg85_refund_018",
+      "tag": "refund",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "ENR20250820018 能退多少钱",
+      "expect": {
+        "answer_contains_any": [
+          "4800",
+          "应退",
+          "试算"
+        ]
+      }
+    },
+    {
+      "id": "lg86_refund_005_alt",
+      "tag": "refund",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "帮我算一下 ENR20250820005 开课后退班应退金额",
+      "expect": {
+        "answer_contains_any": [
+          "3208",
+          "3500",
+          "应退"
+        ]
+      }
+    },
+    {
+      "id": "lg87_refund_014",
+      "tag": "refund",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "ENR20250820014 退班退多少",
+      "expect": {
+        "answer_contains_any": [
+          "4400",
+          "应退",
+          "试算"
+        ]
+      }
+    },
+    {
+      "id": "lg88_refund_must_not_hallucinate",
+      "tag": "refund",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "ENR20250820005 退班能退多少钱",
+      "expect": {
+        "answer_contains_any": [
+          "3208",
+          "3500",
+          "应退"
+        ],
+        "answer_must_not_contain": [
+          "5600",
+          "Insufficient",
+          "GraphRecursion",
+          "99999"
+        ]
+      }
+    },
+    {
+      "id": "lg89_stat_teachers",
+      "tag": "stats",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "现在有多少位主讲老师？",
+      "expect": {
+        "answer_contains_any": [
+          "老师",
+          "5",
+          "王老师",
+          "陈老师"
+        ]
+      }
+    },
+    {
+      "id": "lg90_stat_classes",
+      "tag": "stats",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "有多少个班级？",
+      "expect": {
+        "answer_contains_any": [
+          "班级",
+          "20",
+          "班"
+        ]
+      }
+    },
+    {
+      "id": "lg91_stat_students",
+      "tag": "stats",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "学员一共有多少人？",
+      "expect": {
+        "answer_contains_any": [
+          "学员",
+          "20",
+          "人"
+        ]
+      }
+    },
+    {
+      "id": "lg92_stat_orders",
+      "tag": "stats",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "报名订单总共有多少？",
+      "expect": {
+        "answer_contains_any": [
+          "订单",
+          "报名",
+          "24",
+          "20"
+        ]
+      }
+    },
+    {
+      "id": "lg93_stat_overview",
+      "tag": "stats",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "简单说下 CRM 数据规模：订单班级老师学员大概多少",
+      "expect": {
+        "answer_contains_any": [
+          "订单",
+          "班级",
+          "老师",
+          "学员"
+        ]
+      }
+    },
+    {
+      "id": "lg94_stat_wang",
+      "tag": "stats",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "王老师带了哪些班？",
+      "expect": {
+        "answer_contains_any": [
+          "王老师",
+          "数学",
+          "班级"
+        ]
+      }
+    },
+    {
+      "id": "lg95_stat_math_classes",
+      "tag": "stats",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "数学科目有哪些班级？",
+      "expect": {
+        "answer_contains_any": [
+          "数学",
+          "初"
+        ]
+      }
+    },
+    {
+      "id": "lg96_wo_001",
+      "tag": "finance",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "工单 WO20260901001 什么状态？什么类型？",
+      "expect": {
+        "answer_contains_any": [
+          "WO20260901001",
+          "approved",
+          "换班",
+          "通过"
+        ]
+      }
+    },
+    {
+      "id": "lg97_wo_003_pending",
+      "tag": "finance",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "WO20260901003 工单状态是什么？",
+      "expect": {
+        "answer_contains_any": [
+          "pending",
+          "待审",
+          "转班",
+          "WO20260901003"
+        ]
+      }
+    },
+    {
+      "id": "lg98_coupon_001",
+      "tag": "finance",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "优惠券 CPN20250901001 面额和状态？",
+      "expect": {
+        "answer_contains_any": [
+          "100",
+          "unused",
+          "未用",
+          "CPN20250901001"
+        ]
+      }
+    },
+    {
+      "id": "lg99_voucher_001",
+      "tag": "finance",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "现金券 CV20250901001 余额多少？",
+      "expect": {
+        "answer_contains_any": [
+          "120",
+          "200",
+          "CV20250901001",
+          "active"
+        ]
+      }
+    },
+    {
+      "id": "lg100_refund_order_002",
+      "tag": "finance",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "退款单 RF20250901002 状态和金额？",
+      "expect": {
+        "answer_contains_any": [
+          "900",
+          "paid",
+          "已打款",
+          "RF20250901002"
         ]
       }
     }
