@@ -16,6 +16,16 @@ async def list_classes_detail(db: AsyncSession, id: str | int):
     return result.scalar_one_or_none()
 
 
+async def get_class_by_name(db: AsyncSession, name: str) -> CrmClass | None:
+    stmt = (
+        select(CrmClass)
+        .where(CrmClass.name.like(f"%{name.strip()}%"))
+        .order_by(CrmClass.id.asc())
+        .limit(1)
+    )
+    return (await db.execute(stmt)).scalar_one_or_none()
+
+
 async def count_classes(db: AsyncSession, status: str | None = None) -> int:
     stmt = select(func.count()).select_from(CrmClass)
     if status:

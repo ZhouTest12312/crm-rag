@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import re
+from datetime import date
 from decimal import Decimal
 from config.db_conf import AsyncSessionLocal, run_async
 from crud.enrollments import (
@@ -21,6 +22,16 @@ from crud.classes import (
     list_classes_brief,
     list_teachers,
     count_classes_filtered,
+    list_classes_detail,
+    get_class_by_name,
+)
+from crud.schedule import (
+    list_lessons,
+    next_lesson,
+    list_schedule_changes,
+    list_installments,
+    count_unpaid_installments,
+    list_coupon_refunds,
 )
 from crud.crm_finance import (
     list_cash_vouchers,
@@ -37,7 +48,8 @@ from crud.crm_finance import (
 from crud.work_orders import update_status as update_work_order_status, get_by_work_no
 from schemas.student import StudentQuery
 from models.work_order import APPLY_TYPE_LABELS, ORDER_SOURCE_LABELS, WO_STATUSES
-_ENR_PATTERN = re.compile(r"ENR\d+", re.I)
+from models.schedule_change import CHANGE_REASON_LABELS
+_ENR_PATTERN = re.compile(r"ENR[0-9A-Z]+", re.I)
 # 漏写 E：NR20250820005 → ENR20250820005
 _NR_TYPO_PATTERN = re.compile(r"NR(202508\d+)", re.I)
 
@@ -70,6 +82,10 @@ async def _lookup(order_no: str) -> dict:
         student = await get_student_id(db, row.student_id)
         if student:
             student_name = student.name
+        cls = await list_classes_detail(db, row.class_id)
+        coupons = await list_coupons(db, order_no=row.order_no, status="used")
+        unpaid = await count_unpaid_installments(db, row.order_no)
+        next_ls = await next_lesson(db, row.class_id) if cls else None
         return {
             "ok": True,
             "order_no": row.order_no,
@@ -79,7 +95,24 @@ async def _lookup(order_no: str) -> dict:
             "unit_price": str(row.unit_price),
             "student_id": row.student_id,
             "class_id": row.class_id,
+            "class_name": cls.name if cls else None,
+            "class_status": cls.status if cls else None,
+            "class_start_date": str(cls.start_date) if cls and cls.start_date else None,
+            "class_end_date": str(cls.end_date) if cls and cls.end_date else None,
+            "weekday": getattr(cls, "weekday", None) if cls else None,
+            "time_slot": getattr(cls, "time_slot", None) if cls else None,
+            "next_lesson_date": str(next_ls.lesson_date) if next_ls else None,
             "paid_amount": str(row.paid_amount),
+            "coupon_amount": str(getattr(row, "coupon_amount", 0) or 0),
+            "coupon_used": bool(coupons) or float(getattr(row, "coupon_amount", 0) or 0) > 0,
+            "coupons": [
+                {"coupon_no": c.coupon_no, "name": c.name, "amount": str(c.amount)}
+                for c in coupons
+            ],
+            "has_unpaid_installment": bool(
+                getattr(row, "has_unpaid_installment", 0) or unpaid
+            ),
+            "unpaid_installment_count": unpaid,
             "student_name": student_name,
             "order_source": getattr(row, "order_source", None),
             "order_source_label": ORDER_SOURCE_LABELS.get(
@@ -252,6 +285,12 @@ async def _lookup_classes(
                 "status": r.status,
                 "enrolled_count": r.enrolled_count,
                 "max_seats": r.max_seats,
+                "remaining_seats": (r.max_seats or 0) - (r.enrolled_count or 0),
+                "start_date": str(r.start_date) if r.start_date else None,
+                "end_date": str(r.end_date) if r.end_date else None,
+                "weekday": getattr(r, "weekday", None),
+                "time_slot": getattr(r, "time_slot", None),
+                "classroom": getattr(r, "classroom", None),
             }
             for r in rows
         ]
@@ -725,3 +764,435 @@ def lookup_refunds(
             order_no, _int_or_none(student_id), status, refund_no
         )
     )
+
+
+def _class_brief(cls) -> dict:
+    remaining = (cls.max_seats or 0) - (cls.enrolled_count or 0)
+    return {
+        "class_id": cls.id,
+        "name": cls.name,
+        "subject": cls.subject,
+        "teacher_name": cls.teacher_name,
+        "status": cls.status,
+        "start_date": str(cls.start_date) if cls.start_date else None,
+        "end_date": str(cls.end_date) if cls.end_date else None,
+        "weekday": getattr(cls, "weekday", None),
+        "time_slot": getattr(cls, "time_slot", None),
+        "classroom": getattr(cls, "classroom", None),
+        "enrolled_count": cls.enrolled_count,
+        "max_seats": cls.max_seats,
+        "remaining_seats": remaining,
+        "is_full": remaining <= 0,
+    }
+
+
+async def _resolve_class(db, class_id=None, class_name=None):
+    cid = _int_or_none(class_id)
+    if cid:
+        return await list_classes_detail(db, cid)
+    if class_name:
+        return await get_class_by_name(db, str(class_name))
+    return None
+
+
+async def _lookup_class_schedule(class_id=None, class_name=None) -> dict:
+    async with AsyncSessionLocal() as db:
+        cls = await _resolve_class(db, class_id, class_name)
+        if not cls:
+            return {"ok": False, "error": "班级不存在，请给 class_id 或班级名"}
+        nxt = await next_lesson(db, cls.id)
+        data = _class_brief(cls)
+        data["ok"] = True
+        data["next_lesson"] = (
+            {
+                "lesson_no": nxt.lesson_no,
+                "lesson_date": str(nxt.lesson_date),
+                "start_time": str(nxt.start_time) if nxt.start_time else None,
+                "status": nxt.status,
+            }
+            if nxt
+            else None
+        )
+        return data
+
+
+def lookup_class_schedule(class_id=None, class_name=None) -> dict:
+    """查班级开课/结课日、时段、余座、下次课。"""
+    return run_async(_lookup_class_schedule(class_id, class_name))
+
+
+async def _lookup_lessons(class_id=None, class_name=None, upcoming_only: bool = False) -> dict:
+    async with AsyncSessionLocal() as db:
+        cls = await _resolve_class(db, class_id, class_name)
+        if not cls:
+            return {"ok": False, "error": "班级不存在"}
+        rows = await list_lessons(
+            db, class_id=cls.id, upcoming_only=bool(upcoming_only), limit=20
+        )
+        return {
+            "ok": True,
+            "class_id": cls.id,
+            "class_name": cls.name,
+            "count": len(rows),
+            "items": [
+                {
+                    "lesson_no": r.lesson_no,
+                    "lesson_date": str(r.lesson_date),
+                    "start_time": str(r.start_time) if r.start_time else None,
+                    "end_time": str(r.end_time) if r.end_time else None,
+                    "status": r.status,
+                    "classroom": r.classroom,
+                }
+                for r in rows
+            ],
+        }
+
+
+def lookup_lessons(class_id=None, class_name=None, upcoming_only: bool = False) -> dict:
+    return run_async(_lookup_lessons(class_id, class_name, upcoming_only))
+
+
+async def _lookup_schedule_changes(
+    class_id=None, class_name=None, teacher_name=None, status=None
+) -> dict:
+    async with AsyncSessionLocal() as db:
+        cid = _int_or_none(class_id)
+        if not cid and class_name:
+            cls = await get_class_by_name(db, str(class_name))
+            cid = cls.id if cls else None
+        rows = await list_schedule_changes(
+            db,
+            class_id=cid,
+            teacher_name=teacher_name or None,
+            status=status or None,
+            limit=20,
+        )
+        return {
+            "ok": True,
+            "count": len(rows),
+            "items": [
+                {
+                    "change_no": r.change_no,
+                    "class_id": r.class_id,
+                    "lesson_no": r.lesson_no,
+                    "teacher_name": r.teacher_name,
+                    "old_date": str(r.old_date),
+                    "new_date": str(r.new_date),
+                    "reason_code": r.reason_code,
+                    "reason_label": CHANGE_REASON_LABELS.get(r.reason_code, r.reason),
+                    "reason": r.reason,
+                    "notify_hours": r.notify_hours,
+                    "status": r.status,
+                }
+                for r in rows
+            ],
+        }
+
+
+def lookup_schedule_changes(
+    class_id=None, class_name=None, teacher_name=None, status=None
+) -> dict:
+    return run_async(
+        _lookup_schedule_changes(class_id, class_name, teacher_name, status)
+    )
+
+
+async def _lookup_order_finance(order_no: str) -> dict:
+    order_no = _normalize_order_no(order_no) or ""
+    async with AsyncSessionLocal() as db:
+        row = await get_detail_order_no(db, order_no)
+        if not row:
+            return {"ok": False, "error": "订单不存在"}
+        coupons = await list_coupons(db, order_no=order_no)
+        refunds = await list_refunds(db, order_no=order_no)
+        splits = await list_coupon_refunds(db, order_no=order_no)
+        inst = await list_installments(db, order_no)
+        return {
+            "ok": True,
+            "order_no": order_no,
+            "paid_amount": str(row.paid_amount),
+            "coupon_amount": str(getattr(row, "coupon_amount", 0) or 0),
+            "used_coupon": any(c.status == "used" for c in coupons)
+            or float(getattr(row, "coupon_amount", 0) or 0) > 0,
+            "coupons": [
+                {
+                    "coupon_no": c.coupon_no,
+                    "name": c.name,
+                    "amount": str(c.amount),
+                    "status": c.status,
+                }
+                for c in coupons
+            ],
+            "refunds": [
+                {
+                    "refund_no": r.refund_no,
+                    "amount": str(r.amount),
+                    "status": r.status,
+                }
+                for r in refunds
+            ],
+            "coupon_refunds": [
+                {
+                    "refund_no": s.refund_no,
+                    "cash_refund": str(s.cash_refund),
+                    "coupon_amount": str(s.coupon_amount),
+                    "coupon_refundable": str(s.coupon_refundable),
+                    "policy": s.policy,
+                    "status": s.status,
+                    "remark": s.remark,
+                }
+                for s in splits
+            ],
+            "installments": [
+                {
+                    "period_no": p.period_no,
+                    "amount": str(p.amount),
+                    "status": p.status,
+                    "due_date": str(p.due_date) if p.due_date else None,
+                }
+                for p in inst
+            ],
+        }
+
+
+def lookup_order_finance(order_no: str) -> dict:
+    if not order_no:
+        return {"ok": False, "error": "缺少订单号"}
+    return run_async(_lookup_order_finance(order_no))
+
+
+def lookup_coupon_refunds(order_no: str | None = None, refund_no: str | None = None) -> dict:
+    async def _run():
+        async with AsyncSessionLocal() as db:
+            rows = await list_coupon_refunds(
+                db,
+                order_no=_normalize_order_no(order_no) if order_no else None,
+                refund_no=(refund_no or "").upper() or None,
+            )
+            return {
+                "ok": True,
+                "count": len(rows),
+                "items": [
+                    {
+                        "refund_no": r.refund_no,
+                        "order_no": r.order_no,
+                        "cash_refund": str(r.cash_refund),
+                        "coupon_amount": str(r.coupon_amount),
+                        "coupon_refundable": str(r.coupon_refundable),
+                        "total_refund": str(r.total_refund),
+                        "policy": r.policy,
+                        "status": r.status,
+                        "remark": r.remark,
+                    }
+                    for r in rows
+                ],
+            }
+
+    return run_async(_run())
+
+
+def lookup_installments(order_no: str) -> dict:
+    order_no = _normalize_order_no(order_no) or ""
+    if not order_no:
+        return {"ok": False, "error": "缺少订单号"}
+
+    async def _run():
+        async with AsyncSessionLocal() as db:
+            rows = await list_installments(db, order_no)
+            unpaid = await count_unpaid_installments(db, order_no)
+            return {
+                "ok": True,
+                "order_no": order_no,
+                "unpaid_count": unpaid,
+                "can_withdraw": unpaid == 0,
+                "items": [
+                    {
+                        "period_no": r.period_no,
+                        "amount": str(r.amount),
+                        "status": r.status,
+                        "due_date": str(r.due_date) if r.due_date else None,
+                    }
+                    for r in rows
+                ],
+            }
+
+    return run_async(_run())
+
+
+async def _open_blocking_wo(db, order_no: str) -> list:
+    rows = await list_work_orders(db, order_no=order_no, limit=20)
+    return [
+        r
+        for r in rows
+        if r.status in ("pending", "approved")
+        and r.apply_type in ("withdraw", "settle_refund", "settle_transfer", "change_class", "transfer_class")
+    ]
+
+
+async def _check_refund_eligibility(order_no: str) -> dict:
+    order_no = _normalize_order_no(order_no) or ""
+    async with AsyncSessionLocal() as db:
+        row = await get_detail_order_no(db, order_no)
+        if not row:
+            return {"ok": False, "error": "订单不存在"}
+        reasons: list[str] = []
+        if row.status in ("completed",):
+            reasons.append("已结课，不可按普通退班；应走结转退班")
+        if row.status in ("refunded", "cancelled"):
+            reasons.append(f"当前状态 {row.status}，不可再退班")
+        unpaid = await count_unpaid_installments(db, order_no)
+        if getattr(row, "has_unpaid_installment", 0) or unpaid:
+            reasons.append("存在未结清分期，不可退班")
+        blocking = [
+            r
+            for r in await list_work_orders(db, order_no=order_no)
+            if r.status in ("pending", "approved")
+            and r.apply_type in ("settle_transfer", "settle_refund")
+        ]
+        if blocking:
+            reasons.append(
+                f"已有结转类工单 {blocking[0].work_no}（{blocking[0].apply_type}），不可并行退班"
+            )
+        allowed = len(reasons) == 0
+        path = "before_start_full" if (row.consumed_lessons or 0) == 0 else "after_start_deduct"
+        return {
+            "ok": True,
+            "order_no": order_no,
+            "status": row.status,
+            "allowed": allowed,
+            "reasons": reasons or ["符合退班申请条件"],
+            "path": path,
+            "consumed_lessons": row.consumed_lessons,
+            "hint": (
+                "开课前全额退"
+                if path == "before_start_full"
+                else "开课后扣已消课次，7天内另扣5%服务费"
+            ),
+        }
+
+
+def check_refund_eligibility(order_no: str) -> dict:
+    if not order_no:
+        return {"ok": False, "error": "缺少订单号"}
+    return run_async(_check_refund_eligibility(order_no))
+
+
+async def _check_change_eligibility(order_no: str, to_class_id=None) -> dict:
+    order_no = _normalize_order_no(order_no) or ""
+    async with AsyncSessionLocal() as db:
+        row = await get_detail_order_no(db, order_no)
+        if not row:
+            return {"ok": False, "error": "订单不存在"}
+        src = await list_classes_detail(db, row.class_id)
+        reasons: list[str] = []
+        fee = Decimal("0")
+        free = False
+        if row.status not in ("active", "pending_start"):
+            reasons.append(f"订单状态 {row.status} 不可换班")
+        blocking = [
+            r
+            for r in await list_work_orders(db, order_no=order_no)
+            if r.status in ("pending", "approved")
+            and r.apply_type in ("withdraw", "settle_refund", "settle_transfer")
+        ]
+        if blocking:
+            reasons.append("已申请退班或结转，不可换班")
+        today = date.today()
+        start = src.start_date if src else None
+        if start and (start - today).days >= 3 and not row.free_transfer_used:
+            free = True
+        else:
+            fee = Decimal("50")
+            if row.free_transfer_used:
+                reasons.append("免费换班次数已用，需付费换班（手续费50）")
+            elif start and (start - today).days < 3:
+                reasons.append("距开课不足3天或已开课，走付费换班")
+        tgt = None
+        if to_class_id:
+            tgt = await list_classes_detail(db, int(to_class_id))
+            if not tgt:
+                reasons.append("目标班不存在")
+            else:
+                remain = (tgt.max_seats or 0) - (tgt.enrolled_count or 0)
+                if remain <= 0:
+                    reasons.append("目标班已满，不可换入")
+                if src and tgt.subject != src.subject:
+                    reasons.append("换班须同科目；跨科目应走转班")
+        progress = 0.0
+        if row.total_lessons:
+            progress = row.consumed_lessons / row.total_lessons
+        return {
+            "ok": True,
+            "order_no": order_no,
+            "allowed": len(reasons) == 0 or (
+                to_class_id is None and row.status in ("active", "pending_start") and not blocking
+            ),
+            "free_change": free,
+            "fee_amount": str(fee),
+            "progress": round(progress, 2),
+            "from_class": src.name if src else row.class_id,
+            "to_class": tgt.name if tgt else None,
+            "reasons": reasons or ["可提交换班工单"],
+        }
+
+
+def check_change_eligibility(order_no: str, to_class_id=None) -> dict:
+    if not order_no:
+        return {"ok": False, "error": "缺少订单号"}
+    return run_async(_check_change_eligibility(order_no, _int_or_none(to_class_id)))
+
+
+async def _check_transfer_eligibility(order_no: str) -> dict:
+    order_no = _normalize_order_no(order_no) or ""
+    async with AsyncSessionLocal() as db:
+        row = await get_detail_order_no(db, order_no)
+        if not row:
+            return {"ok": False, "error": "订单不存在"}
+        total = row.total_lessons or 1
+        progress = (row.consumed_lessons or 0) / total
+        allowed = progress <= 0.7 and row.status in ("active", "pending_start")
+        reason = (
+            "可转班（进度未超70%）"
+            if allowed
+            else "原班进度超过70%，不可转班，需走结转换班"
+        )
+        return {
+            "ok": True,
+            "order_no": order_no,
+            "consumed_lessons": row.consumed_lessons,
+            "total_lessons": row.total_lessons,
+            "progress": round(progress, 2),
+            "allowed": allowed,
+            "reason": reason,
+        }
+
+
+def check_transfer_eligibility(order_no: str) -> dict:
+    if not order_no:
+        return {"ok": False, "error": "缺少订单号"}
+    return run_async(_check_transfer_eligibility(order_no))
+
+
+def estimate_settle_refund(order_no: str) -> dict:
+    """结转退班试算：剩余课次 × 单价 × 90%；券不退。"""
+    row = lookup_order(order_no)
+    if not row.get("ok"):
+        return row
+    total = int(row.get("total_lessons") or 0)
+    consumed = int(row.get("consumed_lessons") or 0)
+    remain = max(total - consumed, 0)
+    unit = Decimal(str(row.get("unit_price") or 0))
+    coupon = Decimal(str(row.get("coupon_amount") or 0))
+    gross = (unit * remain) * Decimal("0.9")
+    cash = max(gross, Decimal("0"))
+    return {
+        "ok": True,
+        "order_no": row["order_no"],
+        "remaining_lessons": remain,
+        "unit_price": str(unit),
+        "settle_rate": "90%",
+        "cash_refund": str(cash.quantize(Decimal("0.01"))),
+        "coupon_amount": str(coupon),
+        "coupon_refundable": "0",
+        "note": "结转退班不退优惠券，只退现金部分",
+    }

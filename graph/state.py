@@ -9,8 +9,9 @@ from langgraph.graph import add_messages
 # TODO：字段至少 user_message, reply
 #       若合并 Day3+Day4，还可加 context: str
 class State(TypedDict):
-    user_message:str
-    reply:str
-    context:str
-    role:str
-    messages: Annotated[list,add_messages]
+    user_message: str
+    reply: str
+    context: str
+    sources: list  # retrieve 命中；chat 回传给 golden 算召回
+    role: str
+    messages: Annotated[list, add_messages]

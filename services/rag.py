@@ -5,9 +5,12 @@
 向量部分在 practice/practice_pgvector.py 里一步步写，写完再合并进本文件。
 """
 from __future__ import annotations
+
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
+
 from config.vector_db import connect_vector_db
 from services.embeddings import embed_query
-from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 POLICIES_DIR = BASE_DIR / "data" / "policies"
@@ -56,7 +59,8 @@ def _keyword_score(question: str, text: str) -> int:
             score += 5
     return score
 MAX_VECTOR_DIST = 0.45
-MIN_KEYWORD_SCORE = 3  # 文件顶部常量
+MIN_KEYWORD_SCORE = 3
+VECTOR_TIMEOUT_SEC = 4  # 编码/连库超时就放弃向量，走关键词，避免 golden 一条卡 30s
 def _rank_by_keyword(question: str, top_k: int) -> list[dict]:
     q = question.strip().lower()
     pairs = load_policy_chunks()
@@ -77,22 +81,29 @@ def _rank_by_keyword(question: str, top_k: int) -> list[dict]:
         if len(results) >= top_k:
             break
     return results
+def _rank_by_vector_inner(question: str, top_k: int) -> list[dict]:
+    """向量检索本体；连接/查询失败时返回空。"""
+    q_vec = embed_query(question)
+    sql = (
+        "select source,content,embedding <=> %s::vector as dist "
+        "from policy_chunks order by dist LIMIT %s"
+    )
+    results = []
+    with connect_vector_db() as conn:
+        row = conn.execute(sql, (q_vec, top_k)).fetchall()
+        for src, text, dist in row:
+            if dist > MAX_VECTOR_DIST:
+                continue
+            results.append({"source": src, "text": text})
+    return results
+
+
 def _rank_by_vector(question: str, top_k: int) -> list[dict]:
-    """向量检索；连接/查询失败时返回空，由关键词兜底。"""
+    """向量检索；超时或失败则空列表，由关键词兜底。"""
     try:
-        q_vec = embed_query(question)
-        sql = (
-            "select source,content,embedding <=> %s::vector as dist "
-            "from policy_chunks order by dist LIMIT %s"
-        )
-        results = []
-        with connect_vector_db() as conn:
-            row = conn.execute(sql, (q_vec, top_k)).fetchall()
-            for src, text, dist in row:
-                if dist > MAX_VECTOR_DIST:
-                    continue
-                results.append({"source": src, "text": text})
-        return results
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            fut = pool.submit(_rank_by_vector_inner, question, top_k)
+            return fut.result(timeout=VECTOR_TIMEOUT_SEC)
     except Exception:
         return []
 

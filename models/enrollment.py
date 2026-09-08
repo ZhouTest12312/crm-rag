@@ -25,6 +25,12 @@ class Enrollment(Base):
     unit_price: Mapped[Decimal] = mapped_column(Numeric(10, 2))
     consumed_lessons: Mapped[int] = mapped_column(Integer, default=0)
     free_transfer_used: Mapped[int] = mapped_column(Integer, default=0)
+    coupon_amount: Mapped[Decimal] = mapped_column(
+        Numeric(10, 2), default=0, comment="已用优惠券面额冗余"
+    )
+    has_unpaid_installment: Mapped[int] = mapped_column(
+        Integer, default=0, comment="1=有未结清分期，不可退班"
+    )
     order_source: Mapped[str] = mapped_column(
         String(32), default="offline", comment="订单来源"
     )

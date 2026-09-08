@@ -34,6 +34,16 @@ from services.tools import (
     mark_refund_paid,
     apply_enrollment_refund,
     cancel_order,
+    lookup_class_schedule,
+    lookup_lessons,
+    lookup_schedule_changes,
+    lookup_order_finance,
+    lookup_coupon_refunds,
+    lookup_installments,
+    check_refund_eligibility,
+    check_change_eligibility,
+    check_transfer_eligibility,
+    estimate_settle_refund,
 )
 from utils.rbac import (
     has_perm,
@@ -51,7 +61,7 @@ from services.rag import retrieve
 from services.llm import chat, chat_message
 
 # TODO 5：def route(state) -> str
-_ENR_PATTERN = re.compile(r"ENR\d+", re.I)
+_ENR_PATTERN = re.compile(r"ENR[0-9A-Z]+", re.I)
 _WO_PATTERN = re.compile(r"WO\d+", re.I)
 _RF_PATTERN = re.compile(r"RF\d+", re.I)
 _SUBJECT_IN_Q = re.compile(r"(数学|英语|语文|物理|化学|生物)")
@@ -418,6 +428,146 @@ TOOLS_SCHEMA = [
             },
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "lookup_class_schedule",
+            "description": (
+                "查班级开班日、结课日、上课时段、余座、下一节课。"
+                "问「什么时候开班/结课/下次课/有没有余座」时调用。"
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "class_id": {"type": "integer"},
+                    "class_name": {"type": "string", "description": "班级名称模糊匹配"},
+                },
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "lookup_lessons",
+            "description": "查某班课次列表（日期/状态）。可只看未上课程。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "class_id": {"type": "integer"},
+                    "class_name": {"type": "string"},
+                    "upcoming_only": {"type": "boolean"},
+                },
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "lookup_schedule_changes",
+            "description": "查老师调课记录：原日期、新日期、原因、是否提前通知。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "class_id": {"type": "integer"},
+                    "class_name": {"type": "string"},
+                    "teacher_name": {"type": "string"},
+                    "status": {"type": "string"},
+                },
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "lookup_order_finance",
+            "description": (
+                "查订单是否使用优惠券、券额、关联退款单、分期、券退款拆分。"
+                "问「这单用了券吗」「券退不退」时调用。"
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {"order_no": {"type": "string"}},
+                "required": ["order_no"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "lookup_coupon_refunds",
+            "description": "查券退款拆分单：现金应退 vs 券不退。号形如 CRF…",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "order_no": {"type": "string"},
+                    "refund_no": {"type": "string"},
+                },
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "lookup_installments",
+            "description": "查订单分期及是否结清。未结清则不可退班。",
+            "parameters": {
+                "type": "object",
+                "properties": {"order_no": {"type": "string"}},
+                "required": ["order_no"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "check_refund_eligibility",
+            "description": "判定当前订单能否退班及原因（结课/分期/结转工单互斥）。",
+            "parameters": {
+                "type": "object",
+                "properties": {"order_no": {"type": "string"}},
+                "required": ["order_no"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "check_change_eligibility",
+            "description": "判定能否换班：开课前3天免费、余座、手续费50、互斥工单。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "order_no": {"type": "string"},
+                    "to_class_id": {"type": "integer"},
+                },
+                "required": ["order_no"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "check_transfer_eligibility",
+            "description": "判定能否转班：进度超过70%不可转，需结转换班。",
+            "parameters": {
+                "type": "object",
+                "properties": {"order_no": {"type": "string"}},
+                "required": ["order_no"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "estimate_settle_refund",
+            "description": "结转退班试算：剩余课次×单价×90%，优惠券不退。",
+            "parameters": {
+                "type": "object",
+                "properties": {"order_no": {"type": "string"}},
+                "required": ["order_no"],
+            },
+        },
+    },
 ]
 _CONFIRM = frozenset({"确认", "是的", "是", "好的", "ok", "yes"})
 # 明显闲聊：跳过 retrieve，避免硬塞制度把模型逼成「我是教务助手」拒答
@@ -598,7 +748,7 @@ def agent_node(state):
     )
     parts.append(
         "若用户问退班/退款金额且消息含订单号，优先调用 estimate_refund，"
-        "不要自己算数。"
+        "不要自己算数。结转退班（结课不转新班）用 estimate_settle_refund。"
     )
     parts.append(
         "若用户问最贵的课/最高实付/哪单金额最大，调用 max_paid，不要猜数字。"
@@ -616,7 +766,14 @@ def agent_node(state):
         "退款单数量 → count_refunds；列表 → lookup_refunds；"
         "审批工单 → set_work_order_status；退款打款 → mark_refund_paid；"
         "退班落地 → apply_enrollment_refund；"
-        "报名详情 → lookup_order。禁止编造单号与数量。"
+        "报名详情 → lookup_order；"
+        "班级开课/结课/下次课/余座 → lookup_class_schedule；"
+        "课次列表 → lookup_lessons；老师调课原因 → lookup_schedule_changes；"
+        "订单用券/分期/券退款拆分 → lookup_order_finance；"
+        "能否退班 → check_refund_eligibility；能否换班 → check_change_eligibility；"
+        "能否转班（进度70%） → check_transfer_eligibility；"
+        "结转退班金额 → estimate_settle_refund（券不退）。"
+        "禁止编造单号与数量。"
         "统计/分布类回答：先一句总数，再换行列出「- 中文名（code）：数量」，"
         "便于前端渲染表格；不要全挤在一行用顿号串。"
     )
@@ -848,6 +1005,43 @@ def tools_node(state) -> dict:
                         result = apply_enrollment_refund(on)
                     else:
                         result = {"ok": False, "error": "未确认，订单未改动"}
+            elif name == "lookup_class_schedule":
+                result = lookup_class_schedule(
+                    class_id=args.get("class_id"),
+                    class_name=args.get("class_name"),
+                )
+            elif name == "lookup_lessons":
+                result = lookup_lessons(
+                    class_id=args.get("class_id"),
+                    class_name=args.get("class_name"),
+                    upcoming_only=bool(args.get("upcoming_only")),
+                )
+            elif name == "lookup_schedule_changes":
+                result = lookup_schedule_changes(
+                    class_id=args.get("class_id"),
+                    class_name=args.get("class_name"),
+                    teacher_name=args.get("teacher_name"),
+                    status=args.get("status"),
+                )
+            elif name == "lookup_order_finance":
+                result = lookup_order_finance(order_no)
+            elif name == "lookup_coupon_refunds":
+                result = lookup_coupon_refunds(
+                    order_no=args.get("order_no"),
+                    refund_no=args.get("refund_no"),
+                )
+            elif name == "lookup_installments":
+                result = lookup_installments(order_no)
+            elif name == "check_refund_eligibility":
+                result = check_refund_eligibility(order_no)
+            elif name == "check_change_eligibility":
+                result = check_change_eligibility(
+                    order_no, to_class_id=args.get("to_class_id")
+                )
+            elif name == "check_transfer_eligibility":
+                result = check_transfer_eligibility(order_no)
+            elif name == "estimate_settle_refund":
+                result = estimate_settle_refund(order_no)
             else:
                 result = {"ok": False, "error": f"未知工具 {name}"}
         except Exception as e:
@@ -885,9 +1079,13 @@ def _tool_calls(last):
 #
 # TODO 6：def retrieve_node(state) -> dict   （Day3）
 def retrieve_node(state) -> dict:
-    hits = retrieve(state['user_message'])
-    content = '\n\n'.join(hit['text'] for hit in hits)
-    return {'context': content}
+    hits = retrieve(state["user_message"])
+    content = "\n\n".join(hit["text"] for hit in hits)
+    sources = [
+        {"source": hit.get("source") or "", "text": hit.get("text") or ""}
+        for hit in hits
+    ]
+    return {"context": content, "sources": sources}
 
 
 # TODO 7：def call_llm(state) -> dict        （带 context）

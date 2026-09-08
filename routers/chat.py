@@ -47,7 +47,22 @@ def _graph_state(q: str, history: list, user: dict) -> dict:
         "reply": "",
         "role": user["role"],
         "context": "",
+        "sources": [],
     }
+
+
+def _sources_from_result(result: dict) -> list[dict]:
+    raw = result.get("sources") or []
+    out: list[dict] = []
+    for item in raw:
+        if isinstance(item, dict):
+            out.append(
+                {
+                    "source": str(item.get("source") or ""),
+                    "text": str(item.get("text") or ""),
+                }
+            )
+    return out
 
 
 def _hit_chunks_from_result(result: dict) -> int:
@@ -212,10 +227,12 @@ def chat(
         _append_turn(req.session_id, history, q, answer)
         return ChatResponse(answer=answer, sources=[])
     history = load_messages(req.session_id)
+    sources: list[dict] = []
     try:
         with ThreadPoolExecutor(max_workers=1) as pool:
             fut = pool.submit(_run_graph_turn, req.session_id, q, user, history)
             answer, result, used_tools = fut.result(timeout=GRAPH_TIMEOUT_SEC)
+            sources = _sources_from_result(result)
     except FuturesTimeoutError:
         answer = (
             f"处理超时（{GRAPH_TIMEOUT_SEC} 秒）。"
@@ -229,9 +246,10 @@ def chat(
     approx = _approx_tokens(q, answer)
     print(
         f"[chat] ms={ms:.2f} path=graph used_tools={used_tools} "
-        f"approx_tokens={approx} session={req.session_id} role={user['role']}"
+        f"hit_chunks={len(sources)} approx_tokens={approx} "
+        f"session={req.session_id} role={user['role']}"
     )
-    return ChatResponse(answer=answer, sources=[])
+    return ChatResponse(answer=answer, sources=sources)
 
 
 

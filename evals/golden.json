@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "description": "edu-crm-langgraph golden 100 条：制度/查单/多轮/RBAC/退班试算/统计/工单财务。",
+  "description": "edu-crm-langgraph golden：制度/查单/多轮/RBAC/退班/课表调课/券拆分；召回分文档级与片段级。",
   "base_url": "http://127.0.0.1:8000",
   "cases": [
     {
@@ -14,6 +14,12 @@
           "服务费",
           "扣除",
           "开课后"
+        ],
+        "sources_source_contains_any": [
+          "换班退班转班"
+        ],
+        "sources_text_contains_any": [
+          "5%"
         ]
       }
     },
@@ -153,6 +159,9 @@
           "开课前",
           "退款",
           "工作日"
+        ],
+        "sources_source_contains_any": [
+          "换班退班转班"
         ]
       }
     },
@@ -168,6 +177,9 @@
           "1 次",
           "免费",
           "三天"
+        ],
+        "sources_source_contains_any": [
+          "换班退班转班"
         ]
       }
     },
@@ -181,6 +193,9 @@
           "手续费",
           "差价",
           "多退少补"
+        ],
+        "sources_source_contains_any": [
+          "换班退班转班"
         ]
       }
     },
@@ -195,6 +210,9 @@
           "4 节",
           "退班",
           "结转"
+        ],
+        "sources_source_contains_any": [
+          "换班退班转班"
         ]
       }
     },
@@ -209,6 +227,9 @@
           "产品线",
           "新建",
           "关闭"
+        ],
+        "sources_source_contains_any": [
+          "换班退班转班"
         ]
       }
     },
@@ -222,6 +243,12 @@
           "70",
           "结转换班",
           "不可转"
+        ],
+        "sources_source_contains_any": [
+          "换班退班转班"
+        ],
+        "sources_text_contains_any": [
+          "70%"
         ]
       }
     },
@@ -236,6 +263,9 @@
           "补差价",
           "结转",
           "手续费"
+        ],
+        "sources_source_contains_any": [
+          "换班退班转班"
         ]
       }
     },
@@ -249,6 +279,9 @@
           "结课通知",
           "逾期",
           "退班"
+        ],
+        "sources_source_contains_any": [
+          "换班退班转班"
         ]
       }
     },
@@ -262,6 +295,12 @@
           "剩余",
           "购课单价",
           "结转退班"
+        ],
+        "sources_source_contains_any": [
+          "换班退班转班"
+        ],
+        "sources_text_contains_any": [
+          "90%"
         ]
       }
     },
@@ -275,6 +314,12 @@
           "券",
           "现金",
           "结转退班"
+        ],
+        "sources_source_contains_any": [
+          "换班退班转班"
+        ],
+        "sources_text_contains_any": [
+          "不退"
         ]
       }
     },
@@ -289,6 +334,9 @@
           "工作日",
           "教务",
           "审核"
+        ],
+        "sources_source_contains_any": [
+          "换班退班转班"
         ]
       }
     },
@@ -303,6 +351,9 @@
           "财务",
           "教务",
           "联合"
+        ],
+        "sources_source_contains_any": [
+          "换班退班转班"
         ]
       }
     },
@@ -317,6 +368,12 @@
           "14",
           "转介绍",
           "叠加"
+        ],
+        "sources_source_contains_any": [
+          "买班"
+        ],
+        "sources_text_contains_any": [
+          "早鸟"
         ]
       }
     },
@@ -330,6 +387,9 @@
           "小时",
           "取消",
           "未支付"
+        ],
+        "sources_source_contains_any": [
+          "买班"
         ]
       }
     },
@@ -343,6 +403,9 @@
           "科目",
           "在读",
           "结课"
+        ],
+        "sources_source_contains_any": [
+          "买班"
         ]
       }
     },
@@ -357,6 +420,9 @@
           "免息",
           "首期",
           "当日"
+        ],
+        "sources_source_contains_any": [
+          "买班"
         ]
       }
     },
@@ -369,6 +435,12 @@
           "15",
           "签到",
           "分钟"
+        ],
+        "sources_source_contains_any": [
+          "排课"
+        ],
+        "sources_text_contains_any": [
+          "15"
         ]
       }
     },
@@ -381,6 +453,9 @@
           "30",
           "下课",
           "实到"
+        ],
+        "sources_source_contains_any": [
+          "排课"
         ]
       }
     },
@@ -394,6 +469,9 @@
           "不消课",
           "不可抗力",
           "不额外"
+        ],
+        "sources_source_contains_any": [
+          "排课"
         ]
       }
     },
@@ -407,6 +485,9 @@
           "不退费",
           "回放",
           "请假"
+        ],
+        "sources_source_contains_any": [
+          "排课"
         ]
       }
     },
@@ -420,6 +501,9 @@
           "缺勤",
           "回访",
           "班主任"
+        ],
+        "sources_source_contains_any": [
+          "排课"
         ]
       }
     },
@@ -432,6 +516,9 @@
           "90",
           "分钟",
           "线下"
+        ],
+        "sources_source_contains_any": [
+          "排课"
         ]
       }
     },
@@ -444,6 +531,9 @@
           "60",
           "分钟",
           "线上"
+        ],
+        "sources_source_contains_any": [
+          "排课"
         ]
       }
     },
@@ -458,6 +548,9 @@
           "审批",
           "主管",
           "CRM"
+        ],
+        "sources_source_contains_any": [
+          "换班退班转班"
         ]
       }
     },
@@ -471,6 +564,9 @@
           "结转",
           "分期",
           "不可退"
+        ],
+        "sources_source_contains_any": [
+          "换班退班转班"
         ]
       }
     },
@@ -485,6 +581,9 @@
           "3 天",
           "三天",
           "免费"
+        ],
+        "sources_source_contains_any": [
+          "买班"
         ]
       }
     },
@@ -498,6 +597,9 @@
           "转班",
           "退班",
           "结转"
+        ],
+        "sources_source_contains_any": [
+          "工单"
         ]
       }
     },
@@ -1368,6 +1470,7 @@
         "answer_contains_any": [
           "班级",
           "20",
+          "40",
           "班"
         ]
       }
@@ -1383,6 +1486,7 @@
         "answer_contains_any": [
           "学员",
           "20",
+          "40",
           "人"
         ]
       }
@@ -1399,7 +1503,8 @@
           "订单",
           "报名",
           "24",
-          "20"
+          "20",
+          "44"
         ]
       }
     },
@@ -1525,6 +1630,345 @@
           "paid",
           "已打款",
           "RF20250901002"
+        ]
+      }
+    },
+    {
+      "id": "lg101_schedule_open",
+      "tag": "schedule",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "秋季初二数学提高A班什么时候开班、什么时候结课？",
+      "expect": {
+        "answer_contains_any": [
+          "2026-10-12",
+          "10-12",
+          "2027-01-18",
+          "01-18",
+          "开班"
+        ]
+      }
+    },
+    {
+      "id": "lg102_schedule_full",
+      "tag": "schedule",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "满员初二英语听说班还有余座吗？能不能换进去？",
+      "expect": {
+        "answer_contains_any": [
+          "满",
+          "余座",
+          "0",
+          "不可"
+        ]
+      }
+    },
+    {
+      "id": "lg103_schedule_change",
+      "tag": "schedule",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "调课演示初二数学晚班最近为什么调课？改到哪天？",
+      "expect": {
+        "answer_contains_any": [
+          "调课",
+          "请假",
+          "冲突",
+          "台风",
+          "SCH",
+          "王老师",
+          "日期"
+        ]
+      }
+    },
+    {
+      "id": "lg104_notify_24h",
+      "tag": "policy",
+      "question": "老师请假调课要提前多久通知家长？",
+      "expect": {
+        "answer_contains_any": [
+          "24",
+          "小时"
+        ],
+        "sources_source_contains_any": [
+          "排课"
+        ],
+        "sources_text_contains_any": [
+          "24"
+        ]
+      }
+    },
+    {
+      "id": "lg105_force_majeure_code",
+      "tag": "policy",
+      "question": "台风停课算哪类调课原因，还要提前24小时吗？",
+      "expect": {
+        "answer_contains_any": [
+          "不可抗力",
+          "顺延",
+          "24"
+        ],
+        "sources_source_contains_any": [
+          "排课"
+        ],
+        "sources_text_contains_any": [
+          "force_majeure",
+          "不可抗力"
+        ]
+      }
+    },
+    {
+      "id": "lg106_refund_ok_pending",
+      "tag": "refund",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "ENR20250921C01 现在能不能退班？",
+      "expect": {
+        "answer_contains_any": [
+          "可以",
+          "全额",
+          "开课前",
+          "允许",
+          "符合"
+        ]
+      }
+    },
+    {
+      "id": "lg107_refund_deny_installment",
+      "tag": "refund",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "ENR20250921C06 能不能退班？",
+      "expect": {
+        "answer_contains_any": [
+          "分期",
+          "不可",
+          "未结清"
+        ]
+      }
+    },
+    {
+      "id": "lg108_refund_deny_completed",
+      "tag": "refund",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "ENR20250921C04 还能普通退班吗？",
+      "expect": {
+        "answer_contains_any": [
+          "结课",
+          "不可",
+          "结转"
+        ]
+      }
+    },
+    {
+      "id": "lg109_transfer_70",
+      "tag": "order",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "ENR20250921C03 还能转班吗？进度超没超70？",
+      "expect": {
+        "answer_contains_any": [
+          "70",
+          "不可转",
+          "结转"
+        ]
+      }
+    },
+    {
+      "id": "lg110_change_free",
+      "tag": "order",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "ENR20250921C01 换班要不要收手续费？",
+      "expect": {
+        "answer_contains_any": [
+          "免费",
+          "3 天",
+          "手续费",
+          "50"
+        ]
+      }
+    },
+    {
+      "id": "lg111_coupon_used",
+      "tag": "finance",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "ENR20250921C02 这单用了优惠券吗？用了哪张？",
+      "expect": {
+        "answer_contains_any": [
+          "券",
+          "CPN",
+          "100",
+          "用"
+        ]
+      }
+    },
+    {
+      "id": "lg112_settle_no_coupon",
+      "tag": "finance",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "ENR20250921C08 结转退班券退不退？现金大概退多少？",
+      "expect": {
+        "answer_contains_any": [
+          "不退",
+          "90",
+          "现金",
+          "券"
+        ]
+      }
+    },
+    {
+      "id": "lg113_crf_split",
+      "tag": "finance",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "CRF20250921001 现金应退多少、券退多少？",
+      "expect": {
+        "answer_contains_any": [
+          "1440",
+          "0",
+          "不退",
+          "CRF"
+        ]
+      }
+    },
+    {
+      "id": "lg114_wo_change",
+      "tag": "workorder",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "WO20250921001 是什么类型、什么状态？",
+      "expect": {
+        "answer_contains_any": [
+          "换班",
+          "pending",
+          "待"
+        ]
+      }
+    },
+    {
+      "id": "lg115_wo_transfer_reject",
+      "tag": "workorder",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "WO20250921003 为什么被驳回？",
+      "expect": {
+        "answer_contains_any": [
+          "70",
+          "转班",
+          "驳回",
+          "rejected"
+        ]
+      }
+    },
+    {
+      "id": "lg116_policy_paraphrase_refund",
+      "tag": "policy",
+      "question": "孩子不想上了，钱还能拿回来不？已经上过几节了那种。",
+      "expect": {
+        "answer_contains_any": [
+          "消课",
+          "退",
+          "服务费",
+          "5%",
+          "开课后"
+        ],
+        "sources_source_contains_any": [
+          "换班退班转班"
+        ],
+        "sources_text_contains_any": [
+          "开课后"
+        ]
+      }
+    },
+    {
+      "id": "lg117_policy_paraphrase_coupon",
+      "tag": "policy",
+      "question": "当时用了满减券，现在班结了不转了，券还能吐回来吗？",
+      "expect": {
+        "answer_contains_any": [
+          "不退",
+          "券",
+          "现金",
+          "结转"
+        ],
+        "sources_source_contains_any": [
+          "优惠券",
+          "换班退班转班"
+        ],
+        "sources_text_contains_any": [
+          "不退"
+        ]
+      }
+    },
+    {
+      "id": "lg118_policy_combo_leave",
+      "tag": "policy",
+      "question": "老师下周有事把课挪一下，和家长自己请假补课是一回事吗？",
+      "expect": {
+        "answer_contains_any": [
+          "调课",
+          "请假",
+          "不补课",
+          "24"
+        ],
+        "sources_source_contains_any": [
+          "排课"
+        ],
+        "sources_text_contains_any": [
+          "调课"
+        ]
+      }
+    },
+    {
+      "id": "lg119_policy_installment_forbid",
+      "tag": "policy",
+      "question": "分期还没还完能退班吗？",
+      "expect": {
+        "answer_contains_any": [
+          "分期",
+          "不可退",
+          "结清"
+        ],
+        "sources_source_contains_any": [
+          "换班退班转班",
+          "优惠券"
+        ],
+        "sources_text_contains_any": [
+          "分期"
+        ]
+      }
+    },
+    {
+      "id": "lg120_next_lesson",
+      "tag": "schedule",
+      "headers": {
+        "X-Role": "tutor"
+      },
+      "question": "秋季初二数学提高B班下一节课哪天？",
+      "expect": {
+        "answer_contains_any": [
+          "课",
+          "2026",
+          "周六",
+          "09:00"
         ]
       }
     }
